@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satranç | GameZone</title>
+    <link rel="stylesheet" href="../public/css/chess.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">Game<span>Zone</span></a>
+                <div class="game-info">
+                    <span class="turn">Beyaz'ın Sırası</span>
+                    <button class="reset-btn">Yeni Oyun</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="chess-game">
+        <div class="container">
+            <div class="board-container">
+                <div class="chess-board" id="board">
+                    <!-- Satranç tahtası JavaScript ile oluşturulacak -->
+                </div>
+                <div class="captured-pieces">
+                    <div class="captured white">
+                        <h3>Alınan Beyaz Taşlar</h3>
+                        <div class="pieces" id="capturedWhite"></div>
+                    </div>
+                    <div class="captured black">
+                        <h3>Alınan Siyah Taşlar</h3>
+                        <div class="pieces" id="capturedBlack"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Satranç taşlarının Unicode karakterleri
+        const pieces = {
+            king: { white: '♔', black: '♚' },
+            queen: { white: '♕', black: '♛' },
+            rook: { white: '♖', black: '♜' },
+            bishop: { white: '♗', black: '♝' },
+            knight: { white: '♘', black: '♞' },
+            pawn: { white: '♙', black: '♟' }
+        };
+
+        // Başlangıç pozisyonu
+        const initialPosition = [
+            ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'],
+            ['pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn'],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['', '', '', '', '', '', '', ''],
+            ['pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn', 'pawn'],
+            ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook']
+        ];
+
+        let selectedPiece = null;
+        let currentTurn = 'white';
+        const board = document.getElementById('board');
+
+        // Satranç tahtasını oluştur
+        function createBoard() {
+            board.innerHTML = '';
+            for (let i = 0; i < 8; i++) {
+                for (let j = 0; j < 8; j++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(i + j) % 2 === 0 ? 'white' : 'black'}`;
+                    square.dataset.row = i;
+                    square.dataset.col = j;
+                    
+                    const piece = initialPosition[i][j];
+                    if (piece) {
+                        const color = i < 2 ? 'black' : 'white';
+                        square.innerHTML = `<span class="piece ${color}" data-piece="${piece}">${pieces[piece][color]}</span>`;
+                    }
+                    
+                    square.addEventListener('click', handleSquareClick);
+                    board.appendChild(square);
+                }
+            }
+        }
+
+        // Kare tıklama olayını işle
+        function handleSquareClick(e) {
+            const square = e.target.closest('.square');
+            const piece = square.querySelector('.piece');
+
+            // Eğer zaten bir taş seçiliyse
+            if (selectedPiece) {
+                // Aynı taşa tekrar tıklanırsa seçimi iptal et
+                if (selectedPiece === piece) {
+                    selectedPiece = null;
+                    clearHighlights();
+                    return;
+                }
+
+                // Geçerli bir hamle ise taşı hareket ettir
+                if (isValidMove(selectedPiece, square)) {
+                    movePiece(selectedPiece, square);
+                    selectedPiece = null;
+                    currentTurn = currentTurn === 'white' ? 'black' : 'white';
+                    document.querySelector('.turn').textContent = 
+                        `${currentTurn.charAt(0).toUpperCase() + currentTurn.slice(1)}'ın Sırası`;
+                } else {
+                    // Geçersiz hamle ise ve yeni seçilen kare kendi taşımızsa, yeni taşı seç
+                    if (piece && piece.classList.contains(currentTurn)) {
+                        selectedPiece = piece;
+                        clearHighlights();
+                        highlightSquare(square);
+                        highlightPossibleMoves(piece);
+                    } else {
+                        // Geçersiz hamle ve boş kare veya rakip taş ise seçimi iptal et
+                        selectedPiece = null;
+                        clearHighlights();
+                    }
+                }
+            } else if (piece && piece.classList.contains(currentTurn)) {
+                // Yeni bir taş seç
+                selectedPiece = piece;
+                highlightSquare(square);
+                highlightPossibleMoves(piece);
+            }
+        }
+
+        // Taşı hareket ettir
+        function movePiece(piece, targetSquare) {
+            const targetPiece = targetSquare.querySelector('.piece');
+            if (targetPiece) {
+                capturePiece(targetPiece);
+            }
+            targetSquare.innerHTML = '';
+            targetSquare.appendChild(piece);
+        }
+
+        // Taş alma
+        function capturePiece(piece) {
+            const color = piece.classList.contains('white') ? 'White' : 'Black';
+            const capturedContainer = document.getElementById(`captured${color}`);
+            capturedContainer.appendChild(piece.cloneNode(true));
+        }
+
+        // Geçerli hamle kontrolü (basit versiyon)
+        function isValidMove(piece, targetSquare) {
+            const currentSquare = piece.parentElement;
+            const fromRow = parseInt(currentSquare.dataset.row);
+            const fromCol = parseInt(currentSquare.dataset.col);
+            const toRow = parseInt(targetSquare.dataset.row);
+            const toCol = parseInt(targetSquare.dataset.col);
+            const pieceType = piece.dataset.piece;
+            const pieceColor = piece.classList.contains('white') ? 'white' : 'black';
+            
+            // Kendi taşının üzerine gidemez
+            if (targetSquare.querySelector(`.piece.${currentTurn}`)) {
+                return false;
+            }
+
+            // Taş tipine göre hareket kontrolü
+            switch (pieceType) {
+                case 'pawn':
+                    return isValidPawnMove(fromRow, fromCol, toRow, toCol, pieceColor, targetSquare);
+                case 'rook':
+                    return isValidRookMove(fromRow, fromCol, toRow, toCol);
+                case 'knight':
+                    return isValidKnightMove(fromRow, fromCol, toRow, toCol);
+                case 'bishop':
+                    return isValidBishopMove(fromRow, fromCol, toRow, toCol);
+                case 'queen':
+                    return isValidQueenMove(fromRow, fromCol, toRow, toCol);
+                case 'king':
+                    return isValidKingMove(fromRow, fromCol, toRow, toCol);
+                default:
+                    return false;
+            }
+        }
+
+        // Piyon hareketi
+        function isValidPawnMove(fromRow, fromCol, toRow, toCol, pieceColor, targetSquare) {
+            const direction = pieceColor === 'white' ? -1 : 1;
+            const startRow = pieceColor === 'white' ? 6 : 1;
+            
+            // Normal ileri hareket
+            if (fromCol === toCol && !targetSquare.querySelector('.piece')) {
+                if (toRow === fromRow + direction) {
+                    return true;
+                }
+                // İlk harekette 2 kare ileri
+                if (fromRow === startRow && toRow === fromRow + 2 * direction && !document.querySelector(`[data-row="${fromRow + direction}"][data-col="${fromCol}"]`).querySelector('.piece')) {
+                    return true;
+                }
+            }
+            
+            // Çapraz taş alma
+            if (Math.abs(toCol - fromCol) === 1 && toRow === fromRow + direction) {
+                return targetSquare.querySelector('.piece');
+            }
+            
+            return false;
+        }
+
+        // Kale hareketi
+        function isValidRookMove(fromRow, fromCol, toRow, toCol) {
+            if (fromRow === toRow || fromCol === toCol) {
+                return !isPieceBetween(fromRow, fromCol, toRow, toCol);
+            }
+            return false;
+        }
+
+        // At hareketi
+        function isValidKnightMove(fromRow, fromCol, toRow, toCol) {
+            const rowDiff = Math.abs(toRow - fromRow);
+            const colDiff = Math.abs(toCol - fromCol);
+            return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
+        }
+
+        // Fil hareketi
+        function isValidBishopMove(fromRow, fromCol, toRow, toCol) {
+            if (Math.abs(toRow - fromRow) === Math.abs(toCol - fromCol)) {
+                return !isPieceBetween(fromRow, fromCol, toRow, toCol);
+            }
+            return false;
+        }
+
+        // Vezir hareketi
+        function isValidQueenMove(fromRow, fromCol, toRow, toCol) {
+            return isValidRookMove(fromRow, fromCol, toRow, toCol) || 
+                   isValidBishopMove(fromRow, fromCol, toRow, toCol);
+        }
+
+        // Şah hareketi
+        function isValidKingMove(fromRow, fromCol, toRow, toCol) {
+            return Math.abs(toRow - fromRow) <= 1 && Math.abs(toCol - fromCol) <= 1;
+        }
+
+        // Taşlar arasında başka taş kontrolü
+        function isPieceBetween(fromRow, fromCol, toRow, toCol) {
+            const rowDirection = fromRow === toRow ? 0 : (toRow - fromRow) / Math.abs(toRow - fromRow);
+            const colDirection = fromCol === toCol ? 0 : (toCol - fromCol) / Math.abs(toCol - fromCol);
+            
+            let currentRow = fromRow + rowDirection;
+            let currentCol = fromCol + colDirection;
+            
+            while (currentRow !== toRow || currentCol !== toCol) {
+                const square = document.querySelector(`[data-row="${currentRow}"][data-col="${currentCol}"]`);
+                if (square.querySelector('.piece')) {
+                    return true;
+                }
+                currentRow += rowDirection;
+                currentCol += colDirection;
+            }
+            
+            return false;
+        }
+
+        // Kareleri vurgula
+        function highlightSquare(square) {
+            clearHighlights();
+            square.classList.add('selected');
+        }
+
+        // Olası hamleleri vurgula (güncellendi)
+        function highlightPossibleMoves(piece) {
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => {
+                if (isValidMove(piece, square)) {
+                    square.classList.add('possible-move');
+                }
+            });
+        }
+
+        // Vurguları temizle
+        function clearHighlights() {
+            const squares = document.querySelectorAll('.square');
+            squares.forEach(square => {
+                square.classList.remove('selected', 'possible-move');
+            });
+        }
+
+        // Yeni oyun başlat
+        document.querySelector('.reset-btn').addEventListener('click', () => {
+            createBoard();
+            currentTurn = 'white';
+            document.querySelector('.turn').textContent = 'Beyaz\'ın Sırası';
+            document.getElementById('capturedWhite').innerHTML = '';
+            document.getElementById('capturedBlack').innerHTML = '';
+        });
+
+        // Oyunu başlat
+        createBoard();
+    </script>
+</body>
+</html> 

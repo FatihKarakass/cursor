@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Mario | GameZone</title>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #7B2CBF;
+            --secondary: #9D4EDD;
+            --dark: #240046;
+            --light: #E0AAFF;
+            --background: #10002B;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--background);
+            color: white;
+            overflow: hidden;
+        }
+
+        /* Header Styles */
+        .header {
+            background: rgba(36, 0, 70, 0.95);
+            padding: 1rem 0;
+            margin-bottom: 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--light);
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        .game-info {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .score {
+            font-size: 1.2rem;
+            color: var(--light);
+        }
+
+        /* Game Styles */
+        .game-container {
+            width: 100%;
+            height: calc(100vh - 100px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .game {
+            width: 800px;
+            height: 400px;
+            background: linear-gradient(to bottom, #89CFF0, #A7C7E7);
+            position: relative;
+            overflow: hidden;
+            border: 4px solid var(--primary);
+            border-radius: 10px;
+        }
+
+        #mario {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            bottom: 50px;
+            left: 50px;
+            font-size: 2rem;
+            z-index: 2;
+        }
+
+        .platform {
+            position: absolute;
+            background: linear-gradient(to bottom, #5b9a3f, #2d5e1e);
+            height: 50px;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .coin {
+            position: absolute;
+            font-size: 1.5rem;
+            animation: coinFloat 1s ease-in-out infinite alternate;
+        }
+
+        .enemy {
+            position: absolute;
+            font-size: 1.5rem;
+            animation: enemyMove 3s linear infinite;
+        }
+
+        /* Game Over Screen */
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--dark);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+        }
+
+        .game-over button {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Animations */
+        @keyframes coinFloat {
+            from { transform: translateY(0); }
+            to { transform: translateY(-10px); }
+        }
+
+        @keyframes enemyMove {
+            from { right: -50px; }
+            to { right: 100%; }
+        }
+
+        .jump {
+            animation: jump 0.5s linear;
+        }
+
+        @keyframes jump {
+            0% { bottom: 50px; }
+            50% { bottom: 150px; }
+            100% { bottom: 50px; }
+        }
+
+        @keyframes doubleJump {
+            0% { bottom: 50px; }
+            50% { bottom: 200px; }
+            100% { bottom: 50px; }
+        }
+
+        /* Zıplama durumu göstergesi ekleyelim */
+        #mario::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+        #mario.jump::after {
+            opacity: 0;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">Game<span>Zone</span></a>
+                <div class="game-info">
+                    <span class="score">Skor: <span id="score">0</span></span>
+                    <span class="score">En Yüksek: <span id="highScore">0</span></span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="game-container">
+        <div class="game">
+            <div id="mario">👨</div>
+            <div class="platform"></div>
+        </div>
+        <div class="game-over">
+            <h2>Oyun Bitti!</h2>
+            <p>Skorun: <span id="finalScore">0</span></p>
+            <button onclick="resetGame()">Tekrar Oyna</button>
+        </div>
+    </div>
+
+    <script>
+        const mario = document.getElementById('mario');
+        const game = document.querySelector('.game');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const gameOverScreen = document.querySelector('.game-over');
+
+        let isJumping = false;
+        let jumpCount = 0;
+        const MAX_JUMPS = 2;
+        let gravity = 0.9;
+        let score = 0;
+        let highScore = localStorage.getItem('marioHighScore') || 0;
+        let gameOver = false;
+
+        highScoreElement.textContent = highScore;
+
+        // Mario zıplama kontrolü
+        function jump() {
+            if (jumpCount < MAX_JUMPS && !gameOver) {
+                isJumping = true;
+                jumpCount++;
+                
+                // Zıplama animasyonunu kaldır ve yeniden ekle
+                mario.classList.remove('jump');
+                void mario.offsetWidth; // Reflow
+                mario.classList.add('jump');
+                
+                // İkinci zıplama için farklı bir yükseklik
+                if (jumpCount === 2) {
+                    mario.style.animation = 'doubleJump 0.5s linear';
+                } else {
+                    mario.style.animation = 'jump 0.5s linear';
+                }
+                
+                setTimeout(() => {
+                    mario.classList.remove('jump');
+                    mario.style.animation = '';
+                    isJumping = false;
+                    
+                    // Yere değdiğinde zıplama sayısını sıfırla
+                    if (jumpCount === MAX_JUMPS) {
+                        setTimeout(() => {
+                            jumpCount = 0;
+                        }, 100);
+                    }
+                }, 500);
+            }
+        }
+
+        // Coin oluşturma
+        function createCoin() {
+            const coin = document.createElement('div');
+            coin.classList.add('coin');
+            coin.innerHTML = '🪙';
+            coin.style.left = `${800 + Math.random() * 500}px`;
+            coin.style.bottom = `${50 + Math.random() * 200}px`;
+            game.appendChild(coin);
+
+            const moveInterval = setInterval(() => {
+                const coinLeft = parseInt(coin.style.left);
+                if (coinLeft < -50) {
+                    clearInterval(moveInterval);
+                    coin.remove();
+                } else {
+                    coin.style.left = `${coinLeft - 2}px`;
+                    checkCoinCollision(coin);
+                }
+            }, 20);
+        }
+
+        // Düşman oluşturma
+        function createEnemy() {
+            const enemy = document.createElement('div');
+            enemy.classList.add('enemy');
+            enemy.innerHTML = '👾';
+            enemy.style.bottom = '50px';
+            game.appendChild(enemy);
+
+            const moveInterval = setInterval(() => {
+                if (gameOver) {
+                    clearInterval(moveInterval);
+                    return;
+                }
+                
+                const enemyLeft = parseInt(window.getComputedStyle(enemy).getPropertyValue('left'));
+                if (enemyLeft < -50) {
+                    clearInterval(moveInterval);
+                    enemy.remove();
+                } else {
+                    enemy.style.left = `${enemyLeft - 3}px`;
+                    checkCollision(enemy);
+                }
+            }, 20);
+        }
+
+        // Çarpışma kontrolü
+        function checkCollision(enemy) {
+            const marioRect = mario.getBoundingClientRect();
+            const enemyRect = enemy.getBoundingClientRect();
+
+            if (
+                marioRect.left < enemyRect.right &&
+                marioRect.right > enemyRect.left &&
+                marioRect.top < enemyRect.bottom &&
+                marioRect.bottom > enemyRect.top
+            ) {
+                endGame();
+            }
+        }
+
+        // Coin toplama kontrolü
+        function checkCoinCollision(coin) {
+            const marioRect = mario.getBoundingClientRect();
+            const coinRect = coin.getBoundingClientRect();
+
+            if (
+                marioRect.left < coinRect.right &&
+                marioRect.right > coinRect.left &&
+                marioRect.top < coinRect.bottom &&
+                marioRect.bottom > coinRect.top
+            ) {
+                score += 10;
+                scoreElement.textContent = score;
+                coin.remove();
+            }
+        }
+
+        // Oyun bitişi
+        function endGame() {
+            gameOver = true;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('marioHighScore', highScore);
+                highScoreElement.textContent = highScore;
+            }
+            document.getElementById('finalScore').textContent = score;
+            gameOverScreen.style.display = 'block';
+        }
+
+        // Oyunu sıfırla
+        function resetGame() {
+            gameOver = false;
+            score = 0;
+            scoreElement.textContent = '0';
+            gameOverScreen.style.display = 'none';
+            document.querySelectorAll('.enemy').forEach(enemy => enemy.remove());
+            document.querySelectorAll('.coin').forEach(coin => coin.remove());
+        }
+
+        // Kontroller
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                jump();
+            }
+        });
+
+        document.addEventListener('touchstart', jump);
+
+        // Oyun döngüsü
+        setInterval(() => {
+            if (!gameOver && Math.random() < 0.03) {
+                createEnemy();
+            }
+            if (!gameOver && Math.random() < 0.05) {
+                createCoin();
+            }
+        }, 1000);
+    </script>
+</body>
+</html> 

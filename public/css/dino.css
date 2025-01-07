@@ -1,0 +1,219 @@
+/* Base Styles */
+:root {
+    --primary: #7B2CBF;
+    --secondary: #9D4EDD;
+    --dark: #240046;
+    --light: #E0AAFF;
+    --background: #10002B;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    background-color: var(--background);
+    color: white;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Header Styles */
+.header {
+    background: rgba(36, 0, 70, 0.95);
+    padding: 1rem 0;
+    margin-bottom: 2rem;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: var(--light);
+    text-decoration: none;
+}
+
+.logo span {
+    color: var(--primary);
+}
+
+.game-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.score, .high-score {
+    font-size: 1.2rem;
+    color: var(--light);
+}
+
+.reset-btn {
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.reset-btn:hover {
+    background: var(--secondary);
+}
+
+/* Game Styles */
+.game-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 200px);
+}
+
+.game {
+    width: 600px;
+    height: 200px;
+    border-bottom: 2px solid #fff;
+    position: relative;
+    overflow: hidden;
+}
+
+#dino {
+    width: 50px;
+    height: 50px;
+    position: absolute;
+    bottom: 0;
+    color: white;
+    font-size: 40px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#dino::after {
+    content: 'Ö';
+}
+
+#cactus {
+    width: 20px;
+    height: 40px;
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🌵</text></svg>');
+    background-size: contain;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    animation: cactusMove 1.5s infinite linear;
+}
+
+.jump {
+    animation: jump 0.5s linear;
+}
+
+@keyframes jump {
+    0% { bottom: 0; }
+    50% { bottom: 100px; }
+    100% { bottom: 0; }
+}
+
+@keyframes cactusMove {
+    0% { right: -20px; }
+    100% { right: 100%; }
+}
+
+/* Game Over Screen */
+.game-over {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--dark);
+    padding: 2rem;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.game-over h2 {
+    color: var(--light);
+    margin-bottom: 1rem;
+}
+
+.game-over button {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.game-over button:hover {
+    background: var(--secondary);
+}
+
+.hidden {
+    display: none;
+}
+
+/* Dino Preview Styles for Index Page */
+.dino-preview {
+    background: var(--dark);
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+.dino-scene {
+    position: relative;
+    height: 100%;
+    border-bottom: 2px solid #fff;
+}
+
+.dino-scene .dino {
+    position: absolute;
+    bottom: 10px;
+    left: 20%;
+    width: 40px;
+    height: 40px;
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: dinoIdle 0.5s ease-in-out infinite alternate;
+}
+
+.dino-scene .dino::after {
+    content: 'Ö';
+}
+
+.dino-scene .cactus {
+    position: absolute;
+    bottom: 10px;
+    right: 20%;
+    font-size: 2rem;
+}
+
+.dino-scene .ground {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: #fff;
+} 

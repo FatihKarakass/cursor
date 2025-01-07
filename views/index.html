@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameZone | Oyun Portalı</title>
+    <link rel="stylesheet" href="../public/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-database.js"></script>
+    <script src="../public/js/firebase-config.js"></script>
+    <script src="../public/js/auth.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="/" class="logo">Game<span>Zone</span></a>
+                <ul class="nav-links">
+                    <li><a href="#home">Ana Sayfa</a></li>
+                    <li><a href="#games">Oyunlar</a></li>
+                    <li><a href="#features">Özellikler</a></li>
+                    <li><a href="#contact">İletişim</a></li>
+                </ul>
+                <div class="user-info">
+                    <!-- Burası auth.js tarafından güncellenecek -->
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <h1>Oyun Dünyasına Hoş Geldiniz</h1>
+                <p>En yeni ve popüler oyunları keşfedin</p>
+                <a href="#games" class="btn">Oyunları Keşfet</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Games Section -->
+    <section class="games" id="games">
+        <div class="container">
+            <h2 class="section-title">Popüler Oyunlar</h2>
+            <div class="games-grid">
+                <div class="game-card">
+                    <div class="game-image chess-preview">
+                        <div class="chess-board-preview">
+                            <div class="chess-row">
+                                <div class="chess-square white"><span>♜</span></div>
+                                <div class="chess-square black"><span>♞</span></div>
+                                <div class="chess-square white"><span>♝</span></div>
+                                <div class="chess-square black"><span>♛</span></div>
+                            </div>
+                            <div class="chess-row">
+                                <div class="chess-square black"><span>♟</span></div>
+                                <div class="chess-square white"><span>♟</span></div>
+                                <div class="chess-square black"><span>♟</span></div>
+                                <div class="chess-square white"><span>♟</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="game-info">
+                        <h3>Satranç</h3>
+                        <p>Klasik strateji oyunu</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-star"></i> 4.9</span>
+                            <a href="chess.html" class="play-btn">Oyna</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="game-card">
+                    <div class="game-image dino-preview">
+                        <div class="dino-scene">
+                            <div class="dino">🦖</div>
+                            <div class="cactus">🌵</div>
+                            <div class="ground"></div>
+                        </div>
+                    </div>
+                    <div class="game-info">
+                        <h3>Dino Game</h3>
+                        <p>Chrome'un klasik dinozor oyunu</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-star"></i> 4.8</span>
+                            <a href="dino.html" class="play-btn">Oyna</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="game-card">
+                    <div class="game-image mario-preview">
+                        <div class="mario-scene">
+                            <div class="mario">👨</div>
+                            <div class="coin">🪙</div>
+                            <div class="pipe">🟩</div>
+                            <div class="ground"></div>
+                            <div class="clouds">
+                                <span>☁️</span>
+                                <span>☁️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="game-info">
+                        <h3>Super Mario</h3>
+                        <p>Klasik platform macerası</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-star"></i> 4.9</span>
+                            <a href="mario.html" class="play-btn">Oyna</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="game-card">
+                    <div class="game-image flappy-preview">
+                        <div class="flappy-scene">
+                            <div class="bird">🐦</div>
+                            <div class="pipe-pair">
+                                <div class="pipe top"></div>
+                                <div class="pipe bottom"></div>
+                            </div>
+                            <div class="clouds">
+                                <span>☁️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="game-info">
+                        <h3>Flappy Bird</h3>
+                        <p>Klasik uçuş macerası</p>
+                        <div class="game-meta">
+                            <span><i class="fas fa-star"></i> 4.7</span>
+                            <a href="flappy.html" class="play-btn">Oyna</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <h2 class="section-title">Özellikler</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-gamepad"></i>
+                    <h3>Çeşitli Oyunlar</h3>
+                    <p>Her türden oyun seçeneği</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-users"></i>
+                    <h3>Çok Oyunculu</h3>
+                    <p>Arkadaşlarınla oyna</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-trophy"></i>
+                    <h3>Turnuvalar</h3>
+                    <p>Haftalık ödüllü yarışmalar</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="social-links">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+                <a href="#"><i class="fab fa-discord"></i></a>
+            </div>
+            <p class="footer-text">&copy; 2024 GameZone. Tüm hakları saklıdır.</p>
+        </div>
+    </footer>
+
+    <!-- Login/Register Modal -->
+    <div id="authModal" class="modal">
+        <div class="modal-content">
+            <h2>Giriş Yap / Kayıt Ol</h2>
+            <form id="authForm">
+                <input type="email" id="email" placeholder="E-posta" required>
+                <input type="password" id="password" placeholder="Şifre" required>
+                <button type="submit" id="loginBtn">Giriş Yap</button>
+                <button type="button" id="registerBtn">Kayıt Ol</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html> 

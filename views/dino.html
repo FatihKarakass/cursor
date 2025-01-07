@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dino Game | GameZone</title>
+    <link rel="stylesheet" href="../public/css/dino.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">Game<span>Zone</span></a>
+                <div class="game-info">
+                    <span class="score">Skor: <span id="score">0</span></span>
+                    <span class="high-score">En Yüksek: <span id="highScore">0</span></span>
+                    <button class="reset-btn" onclick="resetGame()">Yeni Oyun</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="game-container">
+        <div class="game">
+            <div id="dino"></div>
+            <div id="cactus"></div>
+        </div>
+        <div class="game-over hidden">
+            <h2>Oyun Bitti!</h2>
+            <p>Skorun: <span id="finalScore">0</span></p>
+            <button onclick="resetGame()">Tekrar Oyna</button>
+        </div>
+    </main>
+
+    <script>
+        const dino = document.getElementById('dino');
+        const cactus = document.getElementById('cactus');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const gameOverScreen = document.querySelector('.game-over');
+        const finalScoreElement = document.getElementById('finalScore');
+
+        let isJumping = false;
+        let isGameOver = false;
+        let score = 0;
+        let highScore = localStorage.getItem('dinoHighScore') || 0;
+        highScoreElement.textContent = highScore;
+
+        // Zıplama fonksiyonu
+        function jump() {
+            if (!isJumping && !isGameOver) {
+                isJumping = true;
+                dino.classList.add('jump');
+                
+                setTimeout(() => {
+                    dino.classList.remove('jump');
+                    isJumping = false;
+                }, 500);
+            }
+        }
+
+        // Çarpışma kontrolü
+        function checkCollision() {
+            const dinoTop = parseInt(window.getComputedStyle(dino).getPropertyValue('top'));
+            const cactusLeft = parseInt(window.getComputedStyle(cactus).getPropertyValue('left'));
+
+            if (cactusLeft < 50 && cactusLeft > 0 && dinoTop >= 140) {
+                gameOver();
+            }
+        }
+
+        // Skor güncelleme
+        function updateScore() {
+            if (!isGameOver) {
+                score++;
+                scoreElement.textContent = score;
+            }
+        }
+
+        // Oyun bitişi
+        function gameOver() {
+            isGameOver = true;
+            cactus.style.animation = 'none';
+            
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('dinoHighScore', highScore);
+                highScoreElement.textContent = highScore;
+            }
+
+            finalScoreElement.textContent = score;
+            gameOverScreen.classList.remove('hidden');
+        }
+
+        // Oyunu sıfırla
+        function resetGame() {
+            isGameOver = false;
+            score = 0;
+            scoreElement.textContent = '0';
+            cactus.style.animation = 'cactusMove 1.5s infinite linear';
+            gameOverScreen.classList.add('hidden');
+        }
+
+        // Oyun döngüsü
+        setInterval(() => {
+            checkCollision();
+            if (!isGameOver) {
+                updateScore();
+            }
+        }, 100);
+
+        // Kontroller
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                jump();
+            }
+        });
+
+        document.addEventListener('touchstart', jump);
+    </script>
+</body>
+</html> 

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Bird | GameZone</title>
+    <link rel="stylesheet" href="../public/css/flappy.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">Game<span>Zone</span></a>
+                <div class="game-info">
+                    <span class="score">En Yüksek Skor: <span id="highScore">0</span></span>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <div class="game-container">
+        <div class="game">
+            <div class="score">Skor: <span id="score">0</span></div>
+            <div id="bird">🐦</div>
+        </div>
+        <div class="game-over">
+            <h2>Oyun Bitti!</h2>
+            <p>Skorun: <span id="finalScore">0</span></p>
+            <button onclick="resetGame()">Tekrar Oyna</button>
+        </div>
+    </div>
+
+    <script>
+        const bird = document.getElementById('bird');
+        const game = document.querySelector('.game');
+        const scoreElement = document.getElementById('score');
+        const highScoreElement = document.getElementById('highScore');
+        const gameOverScreen = document.querySelector('.game-over');
+
+        let birdY = 250;
+        let velocity = 0;
+        let gravity = 0.1;
+        let jumpForce = -4;
+        let score = 0;
+        let highScore = localStorage.getItem('flappyHighScore') || 0;
+        let isGameOver = false;
+        let pipes = [];
+
+        highScoreElement.textContent = highScore;
+
+        function jump() {
+            if (!isGameOver) {
+                velocity = jumpForce;
+                bird.style.transform = 'scaleX(-1) rotate(-20deg)';
+            }
+        }
+
+        function createPipe() {
+            const gap = 180;
+            const pipeTop = document.createElement('div');
+            const pipeBottom = document.createElement('div');
+            
+            pipeTop.className = 'pipe top';
+            pipeBottom.className = 'pipe bottom';
+            
+            const minHeight = 50;
+            const maxHeight = 300;
+            const height = Math.random() * (maxHeight - minHeight) + minHeight;
+            
+            pipeTop.style.height = height + 'px';
+            pipeBottom.style.height = (600 - height - gap) + 'px';
+            
+            pipeTop.style.right = '-60px';
+            pipeBottom.style.right = '-60px';
+            
+            game.appendChild(pipeTop);
+            game.appendChild(pipeBottom);
+            
+            pipes.push({
+                top: pipeTop,
+                bottom: pipeBottom,
+                passed: false
+            });
+        }
+
+        function updateGame() {
+            if (isGameOver) return;
+
+            velocity += gravity;
+            birdY += velocity;
+
+            bird.style.top = `${birdY}px`;
+            
+            const rotation = Math.max(Math.min(velocity * 3, 70), -20);
+            bird.style.transform = `scaleX(-1) rotate(${rotation}deg)`;
+
+            pipes.forEach((pipe, index) => {
+                const x = parseInt(pipe.top.style.right) || 0;
+                pipe.top.style.right = (x + 1.5) + 'px';
+                pipe.bottom.style.right = (x + 1.5) + 'px';
+
+                if (x > 340 && !pipe.passed) {
+                    score++;
+                    scoreElement.textContent = score;
+                    pipe.passed = true;
+                }
+
+                if (checkCollision(pipe)) {
+                    gameOver();
+                }
+
+                if (x > 400) {
+                    pipe.top.remove();
+                    pipe.bottom.remove();
+                    pipes.splice(index, 1);
+                }
+            });
+
+            if (pipes.length === 0 || parseInt(pipes[pipes.length - 1].top.style.right) > 250) {
+                createPipe();
+            }
+
+            if (birdY < -20 || birdY > 580) {
+                gameOver();
+            }
+
+            if (!isGameOver) {
+                requestAnimationFrame(updateGame);
+            }
+        }
+
+        function checkCollision(pipe) {
+            const birdRect = bird.getBoundingClientRect();
+            const topPipeRect = pipe.top.getBoundingClientRect();
+            const bottomPipeRect = pipe.bottom.getBoundingClientRect();
+
+            return (
+                birdRect.right - 10 > topPipeRect.left &&
+                birdRect.left + 10 < topPipeRect.right &&
+                (birdRect.top + 5 < topPipeRect.bottom ||
+                birdRect.bottom - 5 > bottomPipeRect.top)
+            );
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('flappyHighScore', highScore);
+                highScoreElement.textContent = highScore;
+            }
+            document.getElementById('finalScore').textContent = score;
+            gameOverScreen.style.display = 'block';
+        }
+
+        function resetGame() {
+            birdY = 250;
+            velocity = 0;
+            score = 0;
+            isGameOver = false;
+            scoreElement.textContent = '0';
+            gameOverScreen.style.display = 'none';
+            
+            bird.style.top = `${birdY}px`;
+            bird.style.transform = 'scaleX(-1) rotate(0deg)';
+            
+            pipes.forEach(pipe => {
+                pipe.top.remove();
+                pipe.bottom.remove();
+            });
+            pipes = [];
+            requestAnimationFrame(updateGame);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                jump();
+            }
+        });
+
+        document.addEventListener('touchstart', jump);
+
+        resetGame();
+    </script>
+</body>
+</html> 
